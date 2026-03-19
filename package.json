@@ -1,6 +1,6 @@
 {
   "name": "codemagic-watcher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Minimal CLI helper for polling Codemagic builds, streaming status updates, and reacting to failures.",
   "license": "MIT",
   "type": "commonjs",
@@ -11,6 +11,7 @@
   "scripts": {
     "pretest": "npm run build --silent",
     "build": "tsc",
+    "build:release": "./scripts/build-release.sh",
     "dev": "tsc --watch",
     "lint": "tsc --noEmit",
     "start": "node dist/cli.js",

@@ -4,10 +4,26 @@ Tiny CLI helper that polls the [Codemagic REST API](https://api.codemagic.io/) f
 
 ## Requirements
 
-- Node.js 18 or newer (for the native `fetch` implementation).
+- Node.js 18 or newer for local development from source.
 - A Codemagic API token from **Codemagic UI → User settings → Integrations → Codemagic API**.
 
 ## Install & configure
+
+### Homebrew
+
+Once the Homebrew formula is available in `rosseca/tap`, install it with:
+
+```bash
+brew tap rosseca/tap
+brew install codemagic-watch
+export CODEMAGIC_TOKEN=cmg_api_token_here
+```
+
+### Prebuilt binaries
+
+Release archives contain a single `codemagic-watch` executable and do not require Node.js at runtime.
+
+### From source
 
 ```bash
 cd codemagic-watcher
@@ -25,6 +41,24 @@ npm install -g git+https://github.com/akmarinov/codemagic-watch.git
 # or from a local checkout
 cd codemagic-watcher && npm install && npm run build && npm link
 ```
+
+## Packaging releases
+
+This repository can publish standalone Bun executables for:
+
+- macOS arm64
+- macOS x64
+- Linux arm64
+- Linux x64
+
+Build release archives locally with:
+
+```bash
+bun install
+./scripts/build-release.sh
+```
+
+This writes tarballs and `SHA256SUMS.txt` into `release/`, using the version from `package.json`.
 
 ## Commands
 
