@@ -62,6 +62,48 @@ This writes tarballs and `SHA256SUMS.txt` into `release/`, using the version fro
 
 ## Commands
 
+### `codemagic-watch apps [query]`
+
+Lists Codemagic apps visible to the authenticated user, with optional filtering by app name, app id, or repository URL.
+
+```bash
+codemagic-watch apps
+codemagic-watch apps aidesign --json --pretty
+```
+
+This is useful when you need to discover the `appId` required to start builds via the REST API.
+
+### `codemagic-watch start`
+
+Starts a Codemagic build via `POST /builds`. At minimum you must provide `--app`, `--workflow`, and either `--branch` or `--tag`.
+
+```bash
+codemagic-watch start \
+  --app 686790ff0d4e2e11abcf71f3 \
+  --workflow dev_testflight \
+  --branch chore/fastlane-badge
+```
+
+You can also watch the newly created build immediately:
+
+```bash
+codemagic-watch start \
+  --app 686790ff0d4e2e11abcf71f3 \
+  --workflow dev_testflight \
+  --branch chore/fastlane-badge \
+  --watch --json
+```
+
+Supported overrides:
+
+| Flag | Description |
+| ---- | ----------- |
+| `--label <value>` | Add one or more labels to the build. Repeatable. |
+| `--group <name>` | Add one or more environment variable groups. Repeatable. |
+| `--var <KEY=VALUE>` | Add environment variable overrides. Repeatable. |
+| `--xcode <version>` | Override Xcode version for the build. |
+| `--instance-type <type>` | Override the Codemagic instance type. |
+
 ### `codemagic-watch get <build-id-or-url>`
 
 Fetches the latest snapshot for a build. Accepts either the raw build ID (e.g. `6632d9fa8e3d2a0012f7f123`) or any Codemagic build URL. Example:
@@ -91,6 +133,28 @@ codemagic-watch watch https://codemagic.io/app/<app-id>/build/<build-id> \
   --json \
   | codex events --source codemagic --on 'event.type=="complete" && event.conclusion!="success"' \
     --run 'codex notify --channel mobile-builds --message "Codemagic build {event.snapshot.buildId} failed"'
+```
+
+### `codemagic-watch steps <build-id-or-url>`
+
+Lists the normalized step/action summary for a build, which is handy for debugging failed builds and locating step ids.
+
+```bash
+codemagic-watch steps <build-id>
+codemagic-watch steps <build-id> --json --pretty --raw
+```
+
+### `codemagic-watch log <build-id-or-url> <step-id-or-name-or-url>`
+
+Fetches the raw text log for a single build step. The step can be referenced by:
+
+- exact step id
+- exact step name
+- full step API URL
+
+```bash
+codemagic-watch log <build-id> "Apply DEV badge to app icons"
+codemagic-watch log <build-id> 69ca77930eaf4a21f08d554a
 ```
 
 ## JSON event schema

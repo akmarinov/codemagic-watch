@@ -1,6 +1,12 @@
 import chalk from 'chalk';
 import { WatchEvent } from './watcher';
-import { BuildSnapshot, BuildConclusion, determineConclusion } from './types';
+import {
+  AppSummary,
+  BuildConclusion,
+  BuildSnapshot,
+  BuildStepSummary,
+  determineConclusion
+} from './types';
 import { formatDate, formatDuration } from './utils';
 
 export interface JsonOutputOptions {
@@ -11,6 +17,94 @@ export interface JsonOutputOptions {
 
 export interface WatchOutputOptions extends JsonOutputOptions {
   quiet?: boolean;
+}
+
+export function printApps(apps: AppSummary[], options: JsonOutputOptions = {}): void {
+  if (options.json) {
+    console.log(
+      JSON.stringify(
+        apps.map((app) => serializeApp(app, options.includeRaw ?? true)),
+        null,
+        options.prettyJson ? 2 : undefined
+      )
+    );
+    return;
+  }
+
+  if (apps.length === 0) {
+    console.log('No matching Codemagic apps found.');
+    return;
+  }
+
+  for (const app of apps) {
+    const lines = [
+      `${label('App')}: ${app.appName ?? 'n/a'}`,
+      `${label('ID')}: ${app.appId}`,
+      `${label('Repository')}: ${app.repositoryUrl ?? 'n/a'}`,
+      `${label('Workflows')}: ${app.workflowIds.length > 0 ? app.workflowIds.join(', ') : 'n/a'}`,
+      `${label('Branches')}: ${app.branches.length > 0 ? app.branches.join(', ') : 'n/a'}`
+    ];
+    console.log(lines.join('\n'));
+    console.log('');
+  }
+}
+
+export function printBuildStarted(
+  build: { buildId: string; appId: string; workflowId: string; branch?: string; tag?: string; raw?: Record<string, unknown> },
+  options: JsonOutputOptions = {}
+): void {
+  if (options.json) {
+    console.log(
+      JSON.stringify(
+        options.includeRaw ? build : { ...build, raw: undefined },
+        null,
+        options.prettyJson ? 2 : undefined
+      )
+    );
+    return;
+  }
+
+  console.log(
+    [
+      `${label('Build')}: ${build.buildId}`,
+      `${label('App')}: ${build.appId}`,
+      `${label('Workflow')}: ${build.workflowId}`,
+      `${label('Branch')}: ${build.branch ?? 'n/a'}`,
+      `${label('Tag')}: ${build.tag ?? 'n/a'}`
+    ].join('\n')
+  );
+}
+
+export function printBuildSteps(steps: BuildStepSummary[], options: JsonOutputOptions = {}): void {
+  if (options.json) {
+    console.log(
+      JSON.stringify(
+        steps.map((step) => serializeStep(step, options.includeRaw ?? true)),
+        null,
+        options.prettyJson ? 2 : undefined
+      )
+    );
+    return;
+  }
+
+  if (steps.length === 0) {
+    console.log('No build steps found.');
+    return;
+  }
+
+  for (const step of steps) {
+    const lines = [
+      `${label('Step')}: ${step.name ?? 'n/a'}`,
+      `${label('ID')}: ${step.stepId}`,
+      `${label('Status')}: ${step.status ?? 'pending'}`,
+      `${label('Type')}: ${step.type ?? 'n/a'}`,
+      `${label('Started')}: ${formatDate(step.startedAt)}`,
+      `${label('Finished')}: ${formatDate(step.finishedAt)}`,
+      `${label('Log')}: ${step.logUrl ?? 'n/a'}`
+    ];
+    console.log(lines.join('\n'));
+    console.log('');
+  }
 }
 
 export function printSnapshot(
@@ -126,6 +220,16 @@ export function serializeWatchEvent(
     default:
       return { type: 'unknown' };
   }
+}
+
+function serializeApp(app: AppSummary, includeRaw: boolean): Record<string, unknown> {
+  const { raw, ...rest } = app;
+  return includeRaw ? { ...rest, raw } : rest;
+}
+
+function serializeStep(step: BuildStepSummary, includeRaw: boolean): Record<string, unknown> {
+  const { raw, ...rest } = step;
+  return includeRaw ? { ...rest, raw } : rest;
 }
 
 function renderSnapshotLine(

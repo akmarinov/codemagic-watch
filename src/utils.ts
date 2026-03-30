@@ -21,6 +21,29 @@ export function parseBuildIdentifier(input: string): string {
   return normalized.replace(/\/+$/, '');
 }
 
+export function parseStepIdentifier(input: string): string {
+  if (!input || !input.trim()) {
+    throw new Error('A step identifier or step URL is required.');
+  }
+  const trimmed = input.trim();
+
+  if (isProbablyUrl(trimmed)) {
+    try {
+      const url = new URL(trimmed);
+      const match = url.pathname.match(/step\/([^/]+)/i);
+      if (match) {
+        return match[1];
+      }
+    } catch {
+      // Ignore and fall back to returning the trimmed input.
+    }
+  }
+
+  const queryIndex = trimmed.indexOf('?');
+  const normalized = queryIndex >= 0 ? trimmed.slice(0, queryIndex) : trimmed;
+  return normalized.replace(/\/+$/, '');
+}
+
 export function ensureToken(token?: string): string {
   if (!token || !token.trim()) {
     throw new Error(
